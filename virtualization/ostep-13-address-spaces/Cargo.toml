@@ -1,0 +1,11 @@
+[package]
+name = "ostep-13-address-spaces"
+version = "0.1.0"
+authors = ["Allan Calix <contact@allancalix.com>"]
+edition = "2018"
+
+[[bin]]
+name = "heap-allocator"
+path = "examples/allocator.rs"
+
+[dependencies]
