@@ -1,4 +1,0 @@
-[workspace]
-members = [
-  "virtualization/ostep-13-address-spaces",
-]
