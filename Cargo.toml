@@ -1,4 +1,6 @@
 [workspace]
 members = [
+  "crates/vm-emulator",
   "virtualization/ostep-13-address-spaces",
+  "virtualization/ostep-15-address-translation",
 ]
