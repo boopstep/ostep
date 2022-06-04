@@ -1,6 +1,15 @@
-pub struct PageTableEntry (u32);
+const VALID_BIT_MASK: usize = 0x40000000;
+
+const ENTRY_IDX_MASK: usize = 0xfe00;
+
+#[derive(Debug, Clone, Copy)]
+pub struct PageTableEntry(u32);
 
 impl PageTableEntry {
+    fn default() -> Self {
+        PageTableEntry(0)
+    }
+
     fn size() -> usize {
         std::mem::size_of::<u32>()
     }
@@ -13,19 +22,23 @@ impl PageTableEntry {
     /// Returns true if the page is allocated and the requester has sufficient
     /// permission to access the page.
     fn valid(&self) -> bool {
-        todo!()
+        self.0 as usize & ENTRY_IDX_MASK >> 29 == 1
     }
 }
 
 pub struct PageTable {
     size: usize,
     page_size: usize,
-    buffer: Vec<u8>,
+    buffer: Vec<PageTableEntry>,
 }
 
 impl PageTable {
     fn new(size: usize, page_size: usize) -> Self {
-        todo!()
+        Self {
+            size,
+            page_size,
+            buffer: (0..page_size).map(|_| PageTableEntry::default()).collect(),
+        }
     }
 
     /// Returns the size of each page table entry in number of bytes.
@@ -40,6 +53,12 @@ impl PageTable {
     pub fn min_address_size(&self) -> usize {
         todo!()
     }
+
+    pub fn entry(&self, vaddr: usize) -> PageTableEntry {
+        let idx = vaddr & ENTRY_IDX_MASK >> 9;
+
+        self.buffer[idx]
+    }
 }
 
 pub struct AddressSpace {
@@ -51,7 +70,8 @@ pub struct AddressSpace {
 impl AddressSpace {
     fn new(size: usize, page_size: usize) -> Self {
         Self {
-            size, page_size,
+            size,
+            page_size,
             buffer: Vec::with_capacity(size),
         }
     }
@@ -108,7 +128,8 @@ impl AddressSpaceBuilder {
     fn build(&mut self) -> AddressSpace {
         AddressSpace::new(
             self.size.unwrap_or(16 * 1024),
-            self.page_size.unwrap_or(512))
+            self.page_size.unwrap_or(512),
+        )
     }
 }
 
@@ -146,5 +167,12 @@ mod tests {
             .build();
 
         assert_eq!(16383, address_space.page(31, 512));
+    }
+
+    #[test]
+    fn can_fetch_page_table_entry() {
+        let page_table = PageTable::new(16 * 1024, 512);
+
+        assert!(!page_table.entry(0x0 as usize).valid())
     }
 }
